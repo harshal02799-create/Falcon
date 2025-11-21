@@ -10,7 +10,7 @@ def nav_menu():
 
     with col2:
         if st.button("📘 BSE"):
-            st.switch_page("pages/Bse_Dashboard.py")
+            st.switch_page("pages/Bse_dashboard.py")
 
     with col3:
         if st.button("📗 SME"):
