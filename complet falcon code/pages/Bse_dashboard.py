@@ -1,8 +1,6 @@
 import streamlit as st
 from nav import nav_menu
-import streamlit as st
 from streamlit_autorefresh import st_autorefresh
-from nav import nav_menu
 
 # -----------------------------------
 # PAGE CONFIG MUST BE FIRST
