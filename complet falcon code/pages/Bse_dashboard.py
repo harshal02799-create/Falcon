@@ -756,6 +756,8 @@ st.markdown("""
 
 with st.spinner("Fetching TradingView & preparing data..."):
     final = merge_bse_with_tv(merged)
+# Remove duplicate symbols after merging with TradingView
+final = final.drop_duplicates(subset=["TckrSymb"], keep="first")
 
 # 🚫 Remove rows where ValueTrade(Cr) is less than 50 lakhs (0.50 Cr)
 final["ValueTrade(Cr)"] = pd.to_numeric(final["ValueTrade(Cr)"], errors="coerce")
