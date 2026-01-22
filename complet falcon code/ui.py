@@ -1,4 +1,14 @@
 import streamlit as st
+st.markdown("""
+<style>
+/* REMOVE MATERIAL ICON TEXT FROM EXPANDER */
+div[data-testid="stExpander"] button::before,
+div[data-testid="stExpander"] button::after {
+    content: none !important;
+    font-family: inherit !important;
+}
+</style>
+""", unsafe_allow_html=True)
 
 def load_global_ui():
     css = """
@@ -67,6 +77,9 @@ def load_global_ui():
     </style>
     """
     st.markdown(css, unsafe_allow_html=True)
+
+
+
 st.markdown("""
 <style>
 /* allow Pandas Styler cell background colors to show */
@@ -159,6 +172,28 @@ st.markdown("""
 /* REMOVE EDITOR SCROLL */
 [data-testid="stDataEditor"] div[style*="overflow"] {
     overflow-x: hidden !important;
+}
+
+</style>
+""", unsafe_allow_html=True)
+st.markdown("""
+<style>
+/* ===== FIX EXPANDER TEXT OVERLAP (SAFE) ===== */
+div[data-testid="stExpander"] button {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 100% !important;
+    min-height: 42px !important;
+    padding: 8px 12px !important;
+    box-sizing: border-box !important;
+
+    font-size: 15px !important;
+    font-weight: 500 !important;
+    line-height: 1.4 !important;
+    color: #e5e7eb !important;
+
+    cursor: pointer !important;
 }
 
 </style>

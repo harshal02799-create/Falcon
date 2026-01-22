@@ -1,0 +1,423 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>MTM Dashboard</title>
+
+<style>
+
+    /* Better font rendering */
+    body, table {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+
+    body {
+        background-color: #0b0f17;
+        font-family: Cambria, serif;
+        color: #ffffff;
+        margin: 20px;
+        text-align: center;
+    }
+
+    h2 {
+        color: #4fc3f7;
+        font-size: 22px;
+        font-weight: bold;
+        margin-bottom: 15px;
+    }
+
+    h3 {
+        color: #90caf9;
+        margin-top: 25px;
+        font-size: 18px;
+        text-align: center;
+        font-weight: bold;
+    }
+
+    /* Responsive container */
+    .table-container {
+        width: 100%;
+        overflow-x: auto;
+        border-radius: 10px;
+        margin-top: 10px;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        background-color: #11161f;
+        font-size: 16px;
+        text-align: center;
+        border-radius: 10px;
+        overflow: hidden; /* enables rounded corners */
+    }
+
+    /* Header with icons */
+    thead th {
+        background: linear-gradient(90deg, #003049, #002333);
+        padding: 12px;
+        color: #e3f2fd;
+        font-size: 16px;
+        font-weight: bold;
+        border-bottom: 1px solid #1e2a38;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+    /* Force header alignment */
+    th {
+        text-align: center !important;
+    }
+    
+    /* Force row alignment */
+    td {
+        text-align: center !important;
+    }
+
+    /* Add icons to specific headers */
+    th[data-icon="mtm"]:after { content: " "; }
+    th[data-icon="mtmp"]:after { content: " "; }
+    th[data-icon="diffmtm"]:after { content: " "; }
+    th[data-icon="diffmtmp"]:after { content: " "; }
+
+    /* Alternating rows */
+    tbody tr:nth-child(even) { background-color: #0f141c; }
+    tbody tr:nth-child(odd)  { background-color: #141b25; }
+
+    tbody td {
+        border-bottom: none !important;
+        padding: 10px;
+        font-size: 16px;
+        color: #dce2eb;
+    }
+    /* REMOVE ALL TABLE BORDERS COMPLETELY */
+    table, th, td {
+        border: none !important;
+    }
+
+    /* Hover highlight row */
+    tbody tr:hover {
+        background-color: #1e2a38 !important;
+        cursor: pointer;
+    }
+
+    /* Column hover highlight */
+    td:hover {
+        background-color: #263241 !important;
+    }
+
+    /* Highlight TOTAL row */
+    tbody tr:last-child {
+        background-color: #1d2a36 !important;
+        font-weight: bold;
+    }
+
+    /* Color classes */
+    .green { color: #4caf50 !important; font-weight: bold; }
+    .red { color: #ff5252 !important; font-weight: bold; }
+    .grey { color: #b0bec5 !important; font-weight: bold; }
+
+</style>
+
+</head>
+<body>
+<div id="live_status" style="font-size:22px; font-weight:bold; margin-bottom:15px;"></div>
+
+<script>
+function checkPythonStatus() {
+    let lastText = "05-Dec-2025 21:26:19";
+
+    // Convert LAST_UPDATE text to Date object
+    let last = new Date(lastText.replace(/-/g, "/"));
+    let now = new Date();
+
+    let diffSeconds = (now - last) / 1000;
+
+    // If no update for more than 15 seconds → Python stopped
+    if (diffSeconds > 15) {
+        document.getElementById("live_status").innerHTML =
+            "<span style='color:#ff5252;'>❌ LIVE DATA STOPPED — PYTHON CODE NOT RUNNING</span>";
+    } else {
+        document.getElementById("live_status").innerHTML =
+            "<span style='color:#4caf50;'>✔ LIVE DATA RUNNING</span>";
+    }
+}
+
+checkPythonStatus();        // Run immediately
+setInterval(checkPythonStatus, 3000); // Check every 3 seconds
+</script>
+
+<h2></h2>
+<h3>Last Update: 05-Dec-2025 21:26:19</h3>
+
+<h3>B2005 NET POSITION</h3>
+<div class="table-container">
+    <table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>Exchange</th>
+      <th>User</th>
+      <th>CumStrategy</th>
+      <th>Symbol</th>
+      <th>Ser_Exp</th>
+      <th>NetQty</th>
+      <th>NetVal</th>
+      <th>NetPrice</th>
+      <th>Close</th>
+      <th>LTP</th>
+      <th data-icon='mtm'>MTM</th>
+      <th data-icon='mtmp'>MTM %</th>
+      <th data-icon='diffmtm'>Diff MTM</th>
+      <th data-icon='diffmtmp'>Diff MTM %</th>
+      <th>MTMG_L</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>NSE</td>
+      <td>B2005</td>
+      <td>CHART</td>
+      <td>HINDCOPPER</td>
+      <td>EQ</td>
+      <td>0.0</td>
+      <td>10476.15</td>
+      <td>NaN</td>
+      <td>365.75</td>
+      <td>371.85</td>
+      <td><NA></td>
+      <td><span style="color:#b0bec5; font-weight:bold; font-size:16px; font-family:Cambria;">nan</span></td>
+      <td><span style="color:#4caf50; font-weight:bold; font-size:16px; font-family:Cambria;">6100.0</span></td>
+      <td><span style="color:#4caf50; font-weight:bold; font-size:16px; font-family:Cambria;">1.66</span></td>
+      <td><span style="color:#ff5252; font-weight:bold; font-size:16px; font-family:Cambria;">-15230.0</span></td>
+    </tr>
+    <tr>
+      <td></td>
+      <td>TOTAL</td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td>0.0</td>
+      <td>10476.15</td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td><span style="color:#b0bec5; font-weight:bold; font-size:16px; font-family:Cambria;">0.0</span></td>
+      <td></td>
+      <td><span style="color:#4caf50; font-weight:bold; font-size:16px; font-family:Cambria;">6100.0</span></td>
+      <td></td>
+      <td><span style="color:#ff5252; font-weight:bold; font-size:16px; font-family:Cambria;">-15230.0</span></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h3>B5239 NET POSITION</h3>
+<div class="table-container">
+    <table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>Exchange</th>
+      <th>User</th>
+      <th>CumStrategy</th>
+      <th>Symbol</th>
+      <th>Ser_Exp</th>
+      <th>NetQty</th>
+      <th>NetVal</th>
+      <th>NetPrice</th>
+      <th>Close</th>
+      <th>LTP</th>
+      <th data-icon='mtm'>MTM</th>
+      <th data-icon='mtmp'>MTM %</th>
+      <th data-icon='diffmtm'>Diff MTM</th>
+      <th data-icon='diffmtmp'>Diff MTM %</th>
+      <th>MTMG_L</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>NSE</td>
+      <td>B5239</td>
+      <td>CHART</td>
+      <td>HINDCOPPER</td>
+      <td>EQ</td>
+      <td>0.0</td>
+      <td>10170.4</td>
+      <td>NaN</td>
+      <td>365.75</td>
+      <td>371.85</td>
+      <td><NA></td>
+      <td><span style="color:#b0bec5; font-weight:bold; font-size:16px; font-family:Cambria;">nan</span></td>
+      <td><span style="color:#4caf50; font-weight:bold; font-size:16px; font-family:Cambria;">6100.0</span></td>
+      <td><span style="color:#4caf50; font-weight:bold; font-size:16px; font-family:Cambria;">1.66</span></td>
+      <td><span style="color:#ff5252; font-weight:bold; font-size:16px; font-family:Cambria;">-15180.0</span></td>
+    </tr>
+    <tr>
+      <td></td>
+      <td>TOTAL</td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td>0.0</td>
+      <td>20952.3</td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td><span style="color:#b0bec5; font-weight:bold; font-size:16px; font-family:Cambria;">0.0</span></td>
+      <td></td>
+      <td><span style="color:#4caf50; font-weight:bold; font-size:16px; font-family:Cambria;">12200.0</span></td>
+      <td></td>
+      <td><span style="color:#ff5252; font-weight:bold; font-size:16px; font-family:Cambria;">-30460.0</span></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h3>B2005 TODAY POSITION</h3>
+<div class="table-container">
+    <table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>Exchange</th>
+      <th>User</th>
+      <th>Symbol</th>
+      <th>Ser_Exp</th>
+      <th>NetQty</th>
+      <th>NetVal</th>
+      <th>NetPrice</th>
+      <th>MarketPrice</th>
+      <th>MTMG_L</th>
+      <th>CumStrategy</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>NSE</td>
+      <td>B2005</td>
+      <td>IDEA</td>
+      <td>EQ</td>
+      <td>0</td>
+      <td>0.02</td>
+      <td>0.0</td>
+      <td>10.8</td>
+      <td><span style="color:#ff5252; font-weight:bold; font-size:16px; font-family:Cambria;">-0.02</span></td>
+      <td>GREEKSOFT</td>
+    </tr>
+    <tr>
+      <td>NSE</td>
+      <td>B2005</td>
+      <td>HINDCOPPER</td>
+      <td>EQ</td>
+      <td>-1000</td>
+      <td>-356623.85</td>
+      <td>356.62</td>
+      <td>371.85</td>
+      <td><span style="color:#ff5252; font-weight:bold; font-size:16px; font-family:Cambria;">-15230.0</span></td>
+      <td>GREEKSOFT</td>
+    </tr>
+    <tr>
+      <td>BSE</td>
+      <td>B2005</td>
+      <td>CEINSYSTECH</td>
+      <td>B</td>
+      <td>0</td>
+      <td>-2.05</td>
+      <td>0.0</td>
+      <td>998.7</td>
+      <td><span style="color:#4caf50; font-weight:bold; font-size:16px; font-family:Cambria;">2.05</span></td>
+      <td>GREEKSOFT</td>
+    </tr>
+    <tr>
+      <td>Total :</td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td>-1000</td>
+      <td>-356625.88</td>
+      <td></td>
+      <td></td>
+      <td><span style="color:#ff5252; font-weight:bold; font-size:16px; font-family:Cambria;">-15227.97</span></td>
+      <td></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h3>B5239 TODAY POSITION</h3>
+<div class="table-container">
+    <table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>Exchange</th>
+      <th>User</th>
+      <th>Symbol</th>
+      <th>Ser_Exp</th>
+      <th>NetQty</th>
+      <th>NetVal</th>
+      <th>NetPrice</th>
+      <th>MarketPrice</th>
+      <th>MTMG_L</th>
+      <th>CumStrategy</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>NSE</td>
+      <td>B5239</td>
+      <td>IDEA</td>
+      <td>EQ</td>
+      <td>0</td>
+      <td>0.02</td>
+      <td>0.0</td>
+      <td>10.8</td>
+      <td><span style="color:#ff5252; font-weight:bold; font-size:16px; font-family:Cambria;">-0.02</span></td>
+      <td>GREEKSOFT</td>
+    </tr>
+    <tr>
+      <td>NSE</td>
+      <td>B5239</td>
+      <td>HINDCOPPER</td>
+      <td>EQ</td>
+      <td>-1000</td>
+      <td>-356672.10</td>
+      <td>356.67</td>
+      <td>371.85</td>
+      <td><span style="color:#ff5252; font-weight:bold; font-size:16px; font-family:Cambria;">-15180.0</span></td>
+      <td>GREEKSOFT</td>
+    </tr>
+    <tr>
+      <td>BSE</td>
+      <td>B5239</td>
+      <td>CEINSYSTECH</td>
+      <td>B</td>
+      <td>0</td>
+      <td>-0.70</td>
+      <td>0.0</td>
+      <td>998.7</td>
+      <td><span style="color:#4caf50; font-weight:bold; font-size:16px; font-family:Cambria;">0.7</span></td>
+      <td>GREEKSOFT</td>
+    </tr>
+    <tr>
+      <td>Total :</td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td>-1000</td>
+      <td>-356672.78</td>
+      <td></td>
+      <td></td>
+      <td><span style="color:#ff5252; font-weight:bold; font-size:16px; font-family:Cambria;">-15179.32</span></td>
+      <td></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<script>
+setTimeout(function(){ location.reload(); }, 5000);
+</script>
+
+</body>
+</html>
