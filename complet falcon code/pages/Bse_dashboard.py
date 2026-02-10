@@ -1,6 +1,26 @@
 import streamlit as st
 from nav import nav_menu
+import streamlit as st
 from streamlit_autorefresh import st_autorefresh
+from nav import nav_menu
+
+import os
+import requests
+import zipfile
+import shutil
+from datetime import datetime
+
+
+
+# ---------------------------
+# BSE SCRIP STATUS TRACKING
+# ---------------------------
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+BSE_FOLDER = os.path.join(PROJECT_ROOT, "bse_files")
+SCRIP_DATA = os.path.join(BSE_FOLDER, "SCRIP_DATA")
+os.makedirs(SCRIP_DATA, exist_ok=True)
+
+STATUS_FILE = os.path.join(SCRIP_DATA, "last_update.txt")
 
 # -----------------------------------
 # PAGE CONFIG MUST BE FIRST
@@ -13,146 +33,106 @@ st.set_page_config(page_title="BSE Dashboard", layout="wide")
 st_autorefresh(interval=15_000, key="bse_ltp_refresh")
 
 nav_menu()
+def download_and_update_scrip():
+    """
+    Downloads latest DAILY SCRIP.zip from BSE,
+    deletes old files, extracts fresh data only.
+    """
+
+    url = "https://www.bseindia.com/downloads1/SCRIP_BSE.zip"
+
+    headers = {
+        "User-Agent": "Mozilla/5.0",
+        "Referer": "https://www.bseindia.com/",
+        "Cache-Control": "no-cache",
+        "Pragma": "no-cache",
+    }
+
+    today = datetime.now().strftime("%Y-%m-%d")
+
+    zip_path = os.path.join(BSE_FOLDER, "SCRIP_LATEST.zip")
+    temp_extract = os.path.join(BSE_FOLDER, "TEMP_EXTRACT")
+
+    # 🔥 CLEAN OLD DATA COMPLETELY
+    if os.path.exists(SCRIP_DATA):
+        shutil.rmtree(SCRIP_DATA)
+    os.makedirs(SCRIP_DATA, exist_ok=True)
+
+    if os.path.exists(temp_extract):
+        shutil.rmtree(temp_extract)
+    os.makedirs(temp_extract, exist_ok=True)
+
+    # ---------------- DOWNLOAD ----------------
+    try:
+        r = requests.get(url, headers=headers, timeout=30)
+        r.raise_for_status()
+    except Exception as e:
+        return False, f"Download failed: {e}"
+
+    with open(zip_path, "wb") as f:
+        f.write(r.content)
+
+    # ---------------- EXTRACT ----------------
+    try:
+        with zipfile.ZipFile(zip_path, "r") as z:
+            z.extractall(temp_extract)
+    except Exception as e:
+        return False, f"Extraction failed: {e}"
+
+    # --------------------------------------------------
+    # 🔍 LOCATE REQUIRED SCRIP FILES (ROBUST)
+    # --------------------------------------------------
+    scrip_files = []
+
+    for root, dirs, files in os.walk(temp_extract):
+        for f in files:
+            fname = f.upper()
+            if (
+                    fname.startswith("BSE_EQ_SCRIP") and fname.endswith(".CSV")
+            ) or fname.startswith("DP"):
+                scrip_files.append(os.path.join(root, f))
+
+    if not scrip_files:
+        return False, "Required SCRIP files not found inside ZIP"
+
+    # --------------------------------------------------
+    # 📁 COPY FILES TO SCRIP_DATA (ONLY NOW)
+    # --------------------------------------------------
+    if os.path.exists(SCRIP_DATA):
+        shutil.rmtree(SCRIP_DATA)
+    os.makedirs(SCRIP_DATA, exist_ok=True)
+
+    for src in scrip_files:
+        shutil.copy2(src, os.path.join(SCRIP_DATA, os.path.basename(src)))
+
+    # ---------------- CLEANUP ----------------
+    shutil.rmtree(temp_extract, ignore_errors=True)
+    os.remove(zip_path)
+
+    set_last_update(today)
+
+    return True, f"✅ Latest BSE SCRIP updated ({today})"
 
 # ---------------------------
-# BSE: Download / Update module
+# End module
 # ---------------------------
-import os
-import requests
-import zipfile
-import shutil
-from datetime import datetime
-import streamlit as st
-
-# Determine project root (same logic you used elsewhere)
-PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-
-# bse_files folder (auto-created)
-BSE_FOLDER = os.path.join(PROJECT_ROOT, "bse_files")
-SCRIP_DATA = os.path.join(BSE_FOLDER, "SCRIP_DATA")
-os.makedirs(SCRIP_DATA, exist_ok=True)   # creates bse_files/ and SCRIP_DATA/ if missing
-
-# status file to store last update date
-STATUS_FILE = os.path.join(SCRIP_DATA, "last_update.txt")
 
 def get_last_update():
     if os.path.exists(STATUS_FILE):
         try:
-            return open(STATUS_FILE, "r", encoding="utf-8").read().strip()
+            with open(STATUS_FILE, "r", encoding="utf-8") as f:
+                return f.read().strip()
         except:
             return None
     return None
+
 
 def set_last_update(date_str):
     with open(STATUS_FILE, "w", encoding="utf-8") as f:
         f.write(date_str)
 
-def download_and_update_scrip(st_context=None):
-    """
-    Downloads SCRIP.zip from BSE, extracts SCRIP folder, and appends/moves files
-    into bse_files/SCRIP_DATA. Returns (True, msg) on success, (False, msg) on error.
-    """
-    url = "https://www.bseindia.com/downloads/help/SCRIP.zip"
-    headers = {
-        "User-Agent": "Mozilla/5.0",
-        "Referer": "https://www.bseindia.com/downloads/help/file/",
-    }
-
-    today = datetime.now().strftime("%Y-%m-%d")
-    zip_path = os.path.join(BSE_FOLDER, f"SCRIP_{today}.zip")
-    temp_extract = os.path.join(BSE_FOLDER, "TEMP_EXTRACT")
-    os.makedirs(temp_extract, exist_ok=True)
-
-    # Download
-    try:
-        r = requests.get(url, headers=headers, timeout=30)
-    except Exception as e:
-        return False, f"Download error: {e}"
-
-    if r.status_code != 200:
-        return False, f"HTTP {r.status_code} while downloading SCRIP.zip"
-
-    try:
-        with open(zip_path, "wb") as f:
-            f.write(r.content)
-    except Exception as e:
-        return False, f"Failed writing zip: {e}"
-
-    # Extract
-    try:
-        with zipfile.ZipFile(zip_path, 'r') as z:
-            z.extractall(temp_extract)
-    except Exception as e:
-        # cleanup zip
-        if os.path.exists(zip_path):
-            os.remove(zip_path)
-        shutil.rmtree(temp_extract, ignore_errors=True)
-        return False, f"Failed to extract zip: {e}"
-
-    extracted_scrip = os.path.join(temp_extract, "SCRIP")
-    if not os.path.isdir(extracted_scrip):
-        # Some zips may put the folder in different path; try to search
-        found = None
-        for root, dirs, files in os.walk(temp_extract):
-            if os.path.basename(root).upper() == "SCRIP":
-                found = root
-                break
-        if found:
-            extracted_scrip = found
-        else:
-            # cleanup
-            shutil.rmtree(temp_extract, ignore_errors=True)
-            if os.path.exists(zip_path):
-                os.remove(zip_path)
-            return False, "SCRIP folder not found inside ZIP."
-
-    # Process files: if dest exists -> append, else move
-    try:
-        for fname in os.listdir(extracted_scrip):
-            src = os.path.join(extracted_scrip, fname)
-            dest = os.path.join(SCRIP_DATA, fname)
-
-            # ensure we only process files (skip nested dirs)
-            if os.path.isdir(src):
-                # if nested folder, skip or optionally process recursively (skip here)
-                continue
-
-            if os.path.exists(dest):
-                # append in binary mode with newline separator
-                with open(src, "rb") as f_src, open(dest, "ab") as f_dest:
-                    # only add newline if dest not empty and last byte isn't newline
-                    try:
-                        f_dest.seek(0, os.SEEK_END)
-                        if f_dest.tell() > 0:
-                            f_dest.write(b"\n")
-                    except:
-                        f_dest.write(b"\n")
-                    f_dest.write(f_src.read())
-            else:
-                # first time: move file into SCRIP_DATA
-                shutil.move(src, dest)
-    except Exception as e:
-        shutil.rmtree(temp_extract, ignore_errors=True)
-        if os.path.exists(zip_path):
-            os.remove(zip_path)
-        return False, f"Failed processing extracted files: {e}"
-
-    # cleanup
-    shutil.rmtree(temp_extract, ignore_errors=True)
-    if os.path.exists(zip_path):
-        os.remove(zip_path)
-
-    # mark update
-    set_last_update(today)
-    return True, f"SCRIP updated: {today}"
 
 def bse_download_button_ui():
-    """
-    Render button at top. If already updated today, show success and return True.
-    If not updated, show download button. Returns True if updated today (already or just now).
-    """
-    # st.header("📦 BSE SCRIP Data (Daily)")
-
     today = datetime.now().strftime("%Y-%m-%d")
     last = get_last_update()
 
@@ -160,9 +140,10 @@ def bse_download_button_ui():
         st.success(f"✔ SCRIP Updated Today ({today})")
         return True
 
-    st.info("SCRIP not yet updated today.")
-    if st.button("⬇ Download Today's SCRIP File"):
-        with st.spinner("Downloading and updating SCRIP..."):
+    st.info("BSE SCRIP not updated today.")
+
+    if st.button("⬇ Download Latest BSE SCRIP"):
+        with st.spinner("Downloading latest SCRIP from BSE..."):
             ok, msg = download_and_update_scrip()
         if ok:
             st.success(msg)
@@ -171,12 +152,7 @@ def bse_download_button_ui():
             st.error(msg)
             return False
 
-    # user hasn't clicked yet and not updated today
     return False
-
-# ---------------------------
-# End module
-# ---------------------------
 
 # CALL UI at top — user chose option A (top of page)
 updated_today = bse_download_button_ui()
@@ -306,6 +282,14 @@ import os
 # if not SCRIP_FOLDER:
 #     raise Exception("❌ Could not find BSE_EXTRACT/SCRIP folder in this project structure!")
 
+# REMOVE TOP SPACE / PADDING
+st.markdown("""
+    <style>
+        .block-container {
+            padding-top: 1.2rem;
+        }
+    </style>
+""", unsafe_allow_html=True)
 
 # =============================================================
 # 2️⃣ AUTO-DETECT FILES
@@ -402,6 +386,9 @@ dp["ScripCode"] = dp["ScripCode"].astype(int)
 # 6️⃣ MERGE EQ + DP  (FinInstrmId ↔ ScripCode)
 # =============================================================
 merged = eq.merge(dp, left_on="FinInstrmId", right_on="ScripCode", how="left")
+# REMOVE DUPLICATES from old appended data
+merged = merged.drop_duplicates(subset=["FinInstrmId", "TckrSymb"], keep="last").reset_index(drop=True)
+print("Duplicates removed, final rows:", len(merged))
 
 
 # =============================================================
@@ -640,6 +627,8 @@ def merge_bse_with_tv(merged):
 
     # Merge BSE + TV
     final = merged.merge(tv, left_on="TckrSymb", right_on="Symbol", how="left")
+    # Remove duplicates after TradingView merge also
+    final = final.drop_duplicates(subset=["TckrSymb"], keep="last").reset_index(drop=True)
 
     # Convert numeric fields
     for c in ["LTP", "PcntChg", "52W_High", "ATH", "ValueTrade(Cr)", "volume"]:
@@ -756,8 +745,6 @@ st.markdown("""
 
 with st.spinner("Fetching TradingView & preparing data..."):
     final = merge_bse_with_tv(merged)
-# Remove duplicate symbols after merging with TradingView
-final = final.drop_duplicates(subset=["TckrSymb"], keep="first")
 
 # 🚫 Remove rows where ValueTrade(Cr) is less than 50 lakhs (0.50 Cr)
 final["ValueTrade(Cr)"] = pd.to_numeric(final["ValueTrade(Cr)"], errors="coerce")
@@ -946,4 +933,3 @@ st.markdown(f"""
 Total BSE merged rows: **{len(merged)}** — After merge: **{len(final)}**  
 5% band: **{len(band5)}** | 10% band: **{len(band10)}** | 20% band: **{len(band20)}**
 """)
-

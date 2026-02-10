@@ -318,24 +318,6 @@ from nav import nav_menu
 
 nav_menu()
 
-# st.title("📗 SME Dashboard")
-
-
-
-
-# import streamlit as st
-
-# c1, c2 = st.columns([1,1])
-
-# with c1:
-#     if st.button("📗 Go to EQ Dashboard"):
-#         st.switch_page("pages/Price_Band_Dashboard.py")
-
-# with c2:
-#     if st.button("📊 Go to Chart Dashboard"):
-#         st.switch_page("pages/Stock_Chart.py")
-
-# SME_dashboard.py
 import pandas as pd
 import requests
 from datetime import datetime
@@ -345,6 +327,14 @@ from tradingview_screener import Query
 import streamlit as st
 import html
 import streamlit.components.v1 as components
+# REMOVE TOP SPACE / PADDING
+st.markdown("""
+    <style>
+        .block-container {
+            padding-top: 1.2rem;
+        }
+    </style>
+""", unsafe_allow_html=True)
 
 # -----------------------------
 # CONFIG
@@ -464,7 +454,14 @@ def style_band_fullrow(df, band):
     ])
 
     return styler
-
+# REMOVE TOP SPACE / PADDING
+st.markdown("""
+    <style>
+        .block-container {
+            padding-top: 1.2rem;
+        }
+    </style>
+""", unsafe_allow_html=True)
 # Row styling for valuetrade table (based on ValueTrade thresholds)
 def html_table_from_df_with_valuecolor(df, cols, value_col="ValueTrade(Cr)", height=520):
     """Build a glossy HTML table and color rows based on value_col thresholds."""
@@ -726,7 +723,14 @@ def merge_data():
             merged["ValueTrade(Cr)"] = 0.0
 
     return merged, price_band_col
-
+# REMOVE TOP SPACE / PADDING
+st.markdown("""
+    <style>
+        .block-container {
+            padding-top: 1.2rem;
+        }
+    </style>
+""", unsafe_allow_html=True)
 # -----------------------------
 # STREAMLIT UI
 # -----------------------------
