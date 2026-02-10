@@ -3,6 +3,7 @@ streamlit-autorefresh
 pandas
 numpy
 requests
+plotly
 tradingview-screener
 aiohttp
 aiosqlite
