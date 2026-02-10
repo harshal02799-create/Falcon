@@ -17,8 +17,8 @@ def nav_menu():
             st.switch_page("pages/SME_dashboard.py")
 
     with col2:
-        if st.button("📈 market breadth"):
-            st.switch_page("pages/market_breadth.py")
+        if st.button("📈 market breadth1.py"):
+            st.switch_page("pages/market breadth1.py")
 
     with col6:
         if st.button("📈 Chart"):
@@ -29,4 +29,3 @@ def nav_menu():
             st.switch_page("pages/Sector Mover.py")
 
     st.markdown("---")
-
