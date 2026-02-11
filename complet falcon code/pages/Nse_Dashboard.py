@@ -1200,47 +1200,52 @@ import streamlit.components.v1 as components
 # ───────────────────────────────────────────────
 # 📌 TABLE 6 — 52W High & ATH (LEFT SIDE)
 # ───────────────────────────────────────────────
-
 with row2[0]:
     st.subheader("📌 52W High & ATH")
 
-    # Detect columns
-    col_52 = None
-    col_ath = None
-    for c in merged.columns:
-        if "52" in c.lower() and "week" in c.lower():
-            col_52 = c
-        if "high.all" in c.lower().replace(" ", "") or "ath" in c.lower():
-            col_ath = c
+    col_52 = "price_52_week_high"
+    col_ath = "High.All"
 
-    if col_52 is None:
-        for c in merged.columns:
-            if "price_52" in c.lower() or "52week" in c.lower():
-                col_52 = c
-                break
+    tmp = merged.copy()
 
-    # Remove NO-BAND stocks
-    tmp_base = merged[~merged["Symbol"].isin(band_none["Symbol"])]
+    cols_needed = ["Symbol", "LTP", "PcntChg", col_52, col_ath]
+    tmp = tmp[cols_needed].copy()
 
-    # Build table
-    cols_needed = ["Symbol", "LTP", "PcntChg", col_52]
-    tmp = tmp_base[cols_needed].copy()
-    tmp = tmp.rename(columns={col_52: "52W_High"})
+    tmp = tmp.rename(columns={
+        col_52: "52W_High",
+        col_ath: "ATH"
+    })
 
+    # Numeric conversions
     tmp["LTP"] = pd.to_numeric(tmp["LTP"], errors="coerce").round(2)
     tmp["52W_High"] = pd.to_numeric(tmp["52W_High"], errors="coerce").round(2)
+    tmp["ATH"] = pd.to_numeric(tmp["ATH"], errors="coerce").round(2)
     tmp["PcntChg"] = pd.to_numeric(tmp["PcntChg"], errors="coerce").round(2)
 
-    tmp["Dist_52W(%)"] = (((tmp["LTP"] - tmp["52W_High"]) / tmp["52W_High"]) * 100).round(2)
+    tmp["Dist_52W(%)"] = (
+        ((tmp["LTP"] - tmp["52W_High"]) / tmp["52W_High"]) * 100
+    ).round(2)
 
-    if col_ath:
-        tmp[col_ath] = pd.to_numeric(merged[col_ath], errors="coerce").round(2)
-        tmp = tmp.rename(columns={col_ath: "ATH"})
-        tmp["Dist_ATH(%)"] = (((tmp["LTP"] - tmp["ATH"]) / tmp["ATH"]) * 100).round(2)
-    else:
-        tmp["Dist_ATH(%)"] = pd.NA
+    tmp["Dist_ATH(%)"] = (
+        ((tmp["LTP"] - tmp["ATH"]) / tmp["ATH"]) * 100
+    ).round(2)
+
+    # Band column
+    def get_band(symbol):
+        if symbol in band_5["Symbol"].values:
+            return "5%"
+        elif symbol in band_10["Symbol"].values:
+            return "10%"
+        elif symbol in band_20["Symbol"].values:
+            return "20%"
+        else:
+            return "F&O"
+
+    tmp["Band"] = tmp["Symbol"].apply(get_band)
 
     tmp = tmp.sort_values("Dist_52W(%)", ascending=False).head(50).reset_index(drop=True)
+
+
     # ⬇️ Download 52W High & ATH CSV
     st.download_button(
         label="⬇️ 52W High & ATH CSV",
@@ -1269,16 +1274,17 @@ with row2[0]:
                 row_style = "background-color:#055F6A; color:white; font-weight:600;"
         except:
             row_style = ""
-
         cells = [
             f"<td style='padding:8px; white-space:nowrap'>{html.escape(str(r['Symbol']))}</td>",
             f"<td style='padding:8px; text-align:right'>{fmt(r['LTP'])}</td>",
             f"<td style='padding:8px; text-align:right'>{fmt(r['PcntChg'])}</td>",
             f"<td style='padding:8px; text-align:right'>{fmt(r['52W_High'])}</td>",
-            f"<td style='padding:8px; text-align:right'>{fmt(r['Dist_52W(%)'])}</td>"
+            f"<td style='padding:8px; text-align:right'>{fmt(r['ATH'])}</td>",
+            f"<td style='padding:8px; text-align:right'>{fmt(r['Dist_52W(%)'])}</td>",
+            f"<td style='padding:8px; text-align:right'>{html.escape(str(r['Band']))}</td>"
         ]
-        rows_html.append(f"<tr style='{row_style}'>" + "".join(cells) + "</tr>")
 
+        rows_html.append(f"<tr style='{row_style}'>" + "".join(cells) + "</tr>")
     header_html = """
     <thead>
       <tr>
@@ -1286,7 +1292,9 @@ with row2[0]:
         <th style='text-align:right; padding:10px'>LTP</th>
         <th style='text-align:right; padding:10px'>PcntChg</th>
         <th style='text-align:right; padding:10px'>52W_High</th>
+        <th style='text-align:right; padding:10px'>ATH</th>
         <th style='text-align:right; padding:10px'>Dist_52W(%)</th>
+        <th style='text-align:right; padding:10px'>Band</th>
       </tr>
     </thead>
     """
